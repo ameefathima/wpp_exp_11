@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Search Application</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      min-height: 100vh;
+      background: #eef4f8; /* Change from linear-gradient(...) */
+      color: #1e293b;
+      line-height: 1.5;
+      padding: 32px 16px;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    .search-header {
+      background: #2b4c7e; /* Change from linear-gradient(...) */
+      color: #ffffff;
+      padding: 28px;
+      border-radius: 18px;
+      box-shadow: 0 12px 28px rgba(79, 70, 229, 0.25);
+      margin-bottom: 22px;
+    }
+
+    .search-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .search-header p {
+      font-size: 0.95rem;
+      color: #f3e8ff;
+      margin-bottom: 18px;
+    }
+
+    .search-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    #searchInput {
+      width: 100%;
+      padding: 14px 86px 14px 18px;
+      font-size: 1rem;
+      color: #0f172a;
+      background: #ffffff;
+      border: 3px solid rgba(255, 255, 255, 0.6);
+      border-radius: 12px;
+      outline: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    #searchInput:focus {
+      border-color: #fde047;
+      box-shadow: 0 0 0 4px rgba(253, 224, 71, 0.35);
+    }
+
+    #clearBtn {
+      position: absolute;
+      right: 10px;
+      background: #d9534f; /* Change from linear-gradient(...) */
+      color: #ffffff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: none;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    #clearBtn:hover {
+      transform: scale(1.04);
+    }
+
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #312e81;
+      margin-bottom: 16px;
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(6px);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    #resultCount {
+      background: #2f6f9f; /* Change from linear-gradient(...) */
+      color: #ffffff;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    #resultCount:empty {
+      display: none;
+    }
+
+    .status-error {
+      color: #991b1b;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      width: 100%;
+    }
+
+    .results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .result-item {
+      background: #ffffff;
+      padding: 18px 22px;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(30, 41, 59, 0.08);
+      border-left: 6px solid #6366f1;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .result-item:nth-child(4n+1) {
+      border-left-color: #6366f1;
+      background: linear-gradient(to right, #eef2ff 0%, #ffffff 18%);
+    }
+
+    .result-item:nth-child(4n+2) {
+      border-left-color: #ec4899;
+      background: linear-gradient(to right, #fdf2f8 0%, #ffffff 18%);
+    }
+
+    .result-item:nth-child(4n+3) {
+      border-left-color: #10b981;
+      background: linear-gradient(to right, #ecfdf5 0%, #ffffff 18%);
+    }
+
+    .result-item:nth-child(4n+4) {
+      border-left-color: #f59e0b;
+      background: linear-gradient(to right, #fffbeb 0%, #ffffff 18%);
+    }
+
+    .result-item:hover {
+      transform: translateY(-2px) translateX(3px);
+      box-shadow: 0 10px 22px rgba(30, 41, 59, 0.12);
+    }
+
+    .result-title {
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 10px;
+    }
+
+    .result-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .badge-brand {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+
+    .badge-category {
+      background: #fae8ff;
+      color: #86198f;
+    }
+
+    .badge-price {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    mark {
+      background: #fff3a1; /* Change from linear-gradient(...) */
+      color: #0f172a;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .empty-state {
+      background: #ffffff;
+      text-align: center;
+      padding: 36px 20px;
+      border-radius: 14px;
+      color: #475569;
+      border: 2px dashed #c084fc;
+      box-shadow: 0 6px 16px rgba(30, 41, 59, 0.06);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="search-header">
+      <h1>Live Product Search</h1>
+      <p>Type any keyword to search dynamically via Fetch API without reloading the page.</p>
+
+      <div class="search-wrapper">
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Start typing a product (e.g., phone, laptop, perfume, watch)..."
+          autocomplete="off"
+        />
+        <button type="button" id="clearBtn">Clear</button>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <span id="statusText">Type at least 1 character to begin searching.</span>
+      <span id="resultCount"></span>
+    </div>
+
+    <div id="resultsContainer" class="results-list"></div>
+  </div>
+
+  <script>
+    const API_URL = "https://dummyjson.com/products/search";
+    const DEBOUNCE_DELAY = 300;
+
+    const searchInput = document.getElementById("searchInput");
+    const clearBtn = document.getElementById("clearBtn");
+    const statusText = document.getElementById("statusText");
+    const resultCount = document.getElementById("resultCount");
+    const resultsContainer = document.getElementById("resultsContainer");
+
+    let debounceTimer = null;
+    let requestSequence = 0;
+
+    function escapeRegex(str) {
+      return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement("div");
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function highlightMatch(text, query) {
+      const safeText = escapeHtml(text || "");
+      if (!query) return safeText;
+
+      const pattern = new RegExp(`(${escapeRegex(query)})`, "gi");
+      return safeText.replace(pattern, "<mark>$1</mark>");
+    }
+
+    function resetResults(message) {
+      resultsContainer.innerHTML = "";
+      resultCount.textContent = "";
+      statusText.className = "";
+      statusText.textContent = message;
+    }
+
+    function renderResults(products, query) {
+      resultsContainer.innerHTML = "";
+
+      if (!products || products.length === 0) {
+        resultCount.textContent = "0 matches";
+        statusText.textContent = "";
+        resultsContainer.innerHTML = `
+          <div class="empty-state">
+            No matching results found for "<strong>${escapeHtml(query)}</strong>". Try another keyword.
+          </div>
+        `;
+        return;
+      }
+
+      statusText.textContent = `Showing instant results for "${query}"`;
+      resultCount.textContent = `${products.length} matches`;
+
+      const fragment = document.createDocumentFragment();
+
+      products.forEach((product) => {
+        const title = product.title || "Untitled";
+        const brand = product.brand || "Generic";
+        const category = product.category || "General";
+        const price = product.price !== undefined ? `$${product.price}` : "N/A";
+
+        const item = document.createElement("div");
+        item.className = "result-item";
+        item.innerHTML = `
+          <div class="result-title">${highlightMatch(title, query)}</div>
+          <div class="result-badges">
+            <span class="badge badge-brand">Brand: ${highlightMatch(brand, query)}</span>
+            <span class="badge badge-category">Category: ${highlightMatch(category, query)}</span>
+            <span class="badge badge-price">Price: ${escapeHtml(price)}</span>
+          </div>
+        `;
+        fragment.appendChild(item);
+      });
+
+      resultsContainer.appendChild(fragment);
+    }
+
+    async function performLiveSearch(query) {
+      const currentSeq = ++requestSequence;
+      statusText.className = "";
+      statusText.textContent = "Searching...";
+
+      try {
+        const endpoint = `${API_URL}?q=${encodeURIComponent(query)}`;
+        const response = await fetch(endpoint);
+
+        if (currentSeq !== requestSequence) return;
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status} error from server`);
+        }
+
+        const data = await response.json();
+        renderResults(data.products, query);
+      } catch (error) {
+        if (currentSeq !== requestSequence) return;
+        resultsContainer.innerHTML = "";
+        resultCount.textContent = "";
+        statusText.className = "status-error";
+        statusText.textContent = `Search error: ${error.message || "Unable to reach API"}`;
+      }
+    }
+
+    searchInput.addEventListener("input", (event) => {
+      const query = event.target.value.trim();
+      clearBtn.style.display = query.length > 0 ? "block" : "none";
+
+      clearTimeout(debounceTimer);
+
+      if (!query) {
+        requestSequence++;
+        resetResults("Type at least 1 character to begin searching.");
+        return;
+      }
+
+      debounceTimer = setTimeout(() => {
+        performLiveSearch(query);
+      }, DEBOUNCE_DELAY);
+    });
+
+    clearBtn.addEventListener("click", () => {
+      requestSequence++;
+      searchInput.value = "";
+      clearBtn.style.display = "none";
+      clearTimeout(debounceTimer);
+      resetResults("Type at least 1 character to begin searching.");
+      searchInput.focus();
+    });
+  </script>
+</body>
+</html>
